@@ -1,0 +1,48 @@
+html, body, #container {
+    height: 100%;
+    overflow: hidden;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+form > input {
+  margin-bottom: 10px;
+}
+body {
+    /* height of .navbar, customize with @navbar-height variable */
+    padding-top: 50px;
+}
+#map {
+    height: 100%;
+}
+
+#color{
+  width: 100%;
+}
+.navbar {
+  min-height: 50px;
+}
+#sidebar {
+    float: right;
+    height: 100%;
+    max-width: 500px;
+    width: 40%;
+    min-width: 300px;
+    background: #444;
+}
+.sidebar-wrapper {
+    height: 100%;
+    position: relative;
+    width: 100%;
+    background: #444;
+}
+@media (max-width: 767px) {
+  #sidebar {
+    display: none;
+  }
+}
+@media (min-width: 767px) {
+  #sidebar {
+    display: inline-block;
+  }
+}

@@ -1,0 +1,7 @@
+use_frameworks!
+
+target 'iGeoCercas_Client' do
+    pod 'Socket.IO-Client-Swift', '~> 13.2.0'
+    pod 'Starscream', '<= 3.0.5'
+end
+

@@ -1,0 +1,6 @@
+framework module Pods_iGeoCercas_Client {
+  umbrella header "Pods-iGeoCercas_Client-umbrella.h"
+
+  export *
+  module * { export * }
+}
