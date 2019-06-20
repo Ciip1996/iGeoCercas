@@ -14,13 +14,21 @@ import SocketIO
 import UserNotifications
 
 class FirstViewController: UIViewController, CLLocationManagerDelegate {
-
+    
     struct Coordenate: Codable {
         var message: String
         var lat: Double
         var lng: Double
     }
-    
+    struct Response: Decodable{
+        var title: String
+        var message: String
+    }
+    struct JsonResponse: Codable{
+        var title: String
+        var message: String
+    }
+
     let manager = SocketManager(socketURL: URL(string: "http://localhost:3000")!, config: [.log(true), .compress])
     var socket:SocketIOClient!
     var name: String?
@@ -49,15 +57,39 @@ class FirstViewController: UIViewController, CLLocationManagerDelegate {
     func connectSocketServer(){
         self.socket = manager.defaultSocket
         
-        socket.on("notification") { data,ack  in
+        socket.on("notification") {data,ack in
             /* CREATE A NOTIFICATION HERE */
             print("<    Received notification from server   > ")
-            self.displayNotification()// To finish
-            self.displayMessage()// To finish
+            guard let cur = data[0] as? String else {
+                self.displayMessage(withTitle: "error", withMessage: "de parseo")
+                return
+            }
+            let jsonData = cur.data(using: .utf8)!
+            do {
+                guard let response = try? JSONDecoder().decode(Response.self, from: jsonData) else {
+                    print("Error: Couldn't decode data")
+                    return
+                }//self.displayNotification(withTitle: response.title, withMessage: response.message)
+                self.displayMessage(withTitle: response.title, withMessage: response.message)
+            } catch {
+                print(error)
+            }
+                
         }
-        /*socket.on(clientEvent: .connect) {data, ack in
+        socket.on(clientEvent: SocketClientEvent.reconnectAttempt){data, ack in
+            self.displayMessage(withTitle: "Reconnect attempt", withMessage: "The app is trying to connect to the socket server.")
+        }
+        socket.on(clientEvent: SocketClientEvent.reconnect){data, ack in
+            self.displayMessage(withTitle: "Reconnected to Server!", withMessage: "The app is now connected to the socket server.")
+        }
+        socket.on(clientEvent: SocketClientEvent.error){data, ack in
+            guard let cur = data[0] as? String else { return }
+            self.displayMessage(withTitle: "Server Error", withMessage: cur)
+        }
+        socket.on(clientEvent: .connect) {data, ack in
             print("\n\n\t\t Sockets Connected")
-        }*/
+            self.displayMessage(withTitle: "Connection stablished", withMessage: "Now connected to server.")
+        }
         socket.connect()
     }
     
@@ -69,7 +101,7 @@ class FirstViewController: UIViewController, CLLocationManagerDelegate {
         self.map.setRegion(region, animated: true)
         
         do{
-            var coord = Coordenate(message: "message here", lat: location.coordinate.latitude, lng: location.coordinate.longitude)
+            let coord = Coordenate(message: "message here", lat: location.coordinate.latitude, lng: location.coordinate.longitude)
             let jsonData = try JSONEncoder().encode(coord)
             let jsonString = String(data: jsonData, encoding: .utf8)!
             print("emitting the coordenates to the server")
@@ -83,18 +115,18 @@ class FirstViewController: UIViewController, CLLocationManagerDelegate {
         super.didReceiveMemoryWarning()
     }
     
-    func displayMessage(){
-        let alert = UIAlertController(title: "Estas entrando en areas prohibidas", message: "Te recomendamos que salgas ahora antes de que te pase algo peligroso.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+    func displayMessage(withTitle:String, withMessage:String){
+        let alert = UIAlertController(title: withTitle, message: withMessage, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         self.present(alert, animated: true)
     }
     
-    func displayNotification(){
+    func displayNotification(withTitle:String, withMessage:String){
         // 1
         let content = UNMutableNotificationContent()
-        content.title = "Notification Tutorial"
-        content.subtitle = "from ioscreator.com"
-        content.body = " Notification triggered"
+        content.title = withTitle
+        content.subtitle = "message from server"
+        content.body = withMessage
         // 2
         let imageName = "promo"
         guard let imageURL = Bundle.main.url(forResource: imageName, withExtension: "png") else {

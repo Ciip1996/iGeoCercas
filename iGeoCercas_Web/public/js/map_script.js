@@ -3,6 +3,7 @@
  */ 
 var marker = null;
 var map;
+var isNotified = false;
 var arrayPolygon = [];
 var arrayCircle = [];
 var centerCoord = {
@@ -21,8 +22,8 @@ var _txtMensaje = document.getElementById("txtMessage");
 // Enviar al servidor los datos a procesar:
 var SEND = function(){
   var obj = {
-    "title":"Connection Succesful",
-    "message":"Connected to socket server!"
+    "title":"Area peligrosa",
+    "message":"Esta area esta marcada como peligrosa."
   };
   console.log("Sending to server: " + JSON.stringify(obj));
   socket.emit('messageToServer',obj);//It sends the info to the server. The server will receive the info and send the notification to the devices with that specific ID.
@@ -100,9 +101,8 @@ function initMap() {
 // Functions:
 function isCoordinateInsidePoligon(latitude, longitude){
   var coordinate = new google.maps.LatLng(latitude, longitude);                                                                                                                                                                                                       
-
   var isInside = false;
-
+  debugger;
   //iterate through all of the circles saved:
   arrayCircle.forEach(currentCircle => {
     var radius = currentCircle.getRadius();
@@ -113,15 +113,19 @@ function isCoordinateInsidePoligon(latitude, longitude){
   arrayPolygon.forEach(currentPolygon => {
     isInside = google.maps.geometry.poly.containsLocation(coordinate, currentPolygon) ? true : false;
   });
-  if(isInside){
+
+  if(isInside == false)
+  {
+    isNotified = false;  
+  }
+
+  if(isInside && isNotified === false)
+  {
     //send the socket message notificaction to the specific client (ios app)
     this.SEND();
+    isNotified = true;
   }
 }
-function cleanMap(){
-  //drawingManager.setMap(null);
-}
-
 /*
 -  UI: 
 */
